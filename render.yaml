@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: portfolio-clean
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: master
+    rootDir: ./back
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
