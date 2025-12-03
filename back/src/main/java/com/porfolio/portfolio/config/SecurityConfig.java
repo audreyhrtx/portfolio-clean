@@ -5,8 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
@@ -17,21 +16,35 @@ import org.springframework.http.HttpStatus;
 public class SecurityConfig {
 
         @Bean
-        public PasswordEncoder passwordEncoder() {
-                return new BCryptPasswordEncoder();
-        }
-
-        @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
+                                // Désactive CSRF pour API REST
+                                .csrf(csrf -> csrf.disable())
+                                // Configure CORS avec les valeurs par défaut (si configuré ailleurs)
+                                .cors(Customizer.withDefaults())
+                                // Désactive l'authentification par formulaire et de base, on utilisera les
+                                // tokens
+                                .formLogin(AbstractHttpConfigurer::disable)
+                                .httpBasic(AbstractHttpConfigurer::disable)
+                                .logout(AbstractHttpConfigurer::disable)
+
+                                // Configuration des autorisations
                                 .authorizeHttpRequests(authz -> authz
-                                                // ✅ Accès public
-                                                .requestMatchers("/", "/home", "/galerie", "/paints/**").permitAll()
-                                                .requestMatchers("/api/**").permitAll()
-                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                // 🚨 AJOUTEZ VOTRE API D'AUTHENTIFICATION ICI (OBLIGATOIRE !)
+                                                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+
+                                                // ✅ Règle pour toutes les requêtes GET (Lecture)
+                                                // C'est souvent la seule chose dont a besoin un portfolio public
+                                                .requestMatchers(HttpMethod.GET, "/**").permitAll() // Autorise TOUTES
+                                                                                                    // les lectures
+                                                                                                    // (GET)
+
+                                                // ✅ Règle pour les ressources statiques (très important !)
                                                 .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**")
                                                 .permitAll()
-                                                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+
+                                                // ✅ Autres chemins publics (si vous en avez)
+                                                .requestMatchers("/", "/home", "/galerie", "/paints/**").permitAll()
 
                                                 // ✅ Accès administrateur uniquement
                                                 .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
@@ -39,27 +52,15 @@ public class SecurityConfig {
                                                                 "/api/paints/delete/**")
                                                 .hasRole("ADMIN")
 
-                                                // ✅ Accès utilisateur connecté
-                                                .requestMatchers("/profile/**", "/api/user/**")
-                                                .hasAnyRole("USER", "ADMIN")
-                                                .requestMatchers("/orders/**", "/api/orders/**")
-                                                .hasAnyRole("USER", "ADMIN")
-
-                                                // ✅ Tout le reste nécessite une authentification
+                                                // ✅ Tout le reste nécessite une authentification (POST/PUT/DELETE non
+                                                // inclus dans GET ci-dessus)
                                                 .anyRequest().authenticated())
-                                .formLogin(form -> form
-                                                .loginPage("/login")
-                                                .defaultSuccessUrl("/", true)
-                                                .permitAll())
-                                .logout(logout -> logout
-                                                .logoutSuccessUrl("/")
-                                                .permitAll())
-                                .csrf(csrf -> csrf.disable()) // Pour les APIs REST
-                                .cors(Customizer.withDefaults());
 
-                // Éviter les redirections /login pour les appels API non autorisés
-                http.exceptionHandling(ex -> ex
-                                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+                                // S'assurer que les requêtes non autorisées renvoient un 401 propre (sans
+                                // redirection)
+                                .exceptionHandling(ex -> ex
+                                                .authenticationEntryPoint(
+                                                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
 
                 return http.build();
         }
