@@ -13,8 +13,9 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000", "http://localhost:8000")
-                        .allowedMethods("GET", "POST", "DELETE")
+                        .allowedOrigins("http://localhost:3000", "http://localhost:8000",
+                                "https://portfolio-n43c.onrender.com")
+                        .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
                         .allowedHeaders("*").allowCredentials(true);
             }
         };
