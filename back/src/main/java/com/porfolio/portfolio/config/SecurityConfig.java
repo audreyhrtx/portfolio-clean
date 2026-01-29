@@ -30,6 +30,9 @@ public class SecurityConfig {
 
                                 // Configuration des autorisations
                                 .authorizeHttpRequests(authz -> authz
+                                                // Permettre les requêtes preflight CORS (OPTIONS)
+                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                                                 // 🚨 AJOUTEZ VOTRE API D'AUTHENTIFICATION ICI (OBLIGATOIRE !)
                                                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
 
