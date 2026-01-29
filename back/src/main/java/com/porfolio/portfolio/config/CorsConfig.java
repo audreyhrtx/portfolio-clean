@@ -14,8 +14,9 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:3000", "http://localhost:8000",
-                                "https://portfolio-n43c.onrender.com")
-                        .allowedMethods("GET", "POST", "DELETE", "OPTIONS")
+                                "https://portfolio-n43c.onrender.com", 
+                                "https://skrimz.netlify.app")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*").allowCredentials(true);
             }
         };
