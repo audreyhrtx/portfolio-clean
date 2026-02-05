@@ -41,7 +41,8 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/**").permitAll() // Autorise TOUTES
                                                                                                     // les lectures
                                                                                                     // (GET)
-
+                                                
+                                                .requestMatchers("/api/cart/**").permitAll()
                                                 // ✅ Règle pour les ressources statiques (très important !)
                                                 .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**")
                                                 .permitAll()
